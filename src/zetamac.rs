@@ -1,4 +1,6 @@
+use std::cmp::max;
 use std::fmt;
+use chrono::Utc;
 use rand::{prelude::*, random};
 use rand_chacha::ChaCha8Rng;
 
@@ -7,8 +9,8 @@ pub struct GameState {
     pub current_problem: Problem,
     pub seed: u64,
     pub score: u32,
-    pub time: u32,
-    settings: GameSettings,
+    pub start_time: Option<i64>,
+    pub settings: GameSettings,
     rng: ChaCha8Rng,
 }
 
@@ -20,6 +22,13 @@ pub struct Problem {
     operation: Operation,
 }
 
+#[derive(Debug)]
+struct GameSettings {
+    total_time_seconds: i64,
+    addition_range: (std::ops::RangeInclusive<u32>, std::ops::RangeInclusive<u32>),
+    multiplication_range: (std::ops::RangeInclusive<u32>, std::ops::RangeInclusive<u32>),
+}
+
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 enum Operation {
     #[default]
@@ -27,13 +36,6 @@ enum Operation {
     Subtract,
     Multiply,
     Divide,
-}
-
-#[derive(Debug)]
-struct GameSettings {
-    addition_range: (std::ops::RangeInclusive<u32>, std::ops::RangeInclusive<u32>),
-    multiplication_range: (std::ops::RangeInclusive<u32>, std::ops::RangeInclusive<u32>),
-    total_time_seconds: u32
 }
 
 impl Default for GameSettings {
@@ -60,10 +62,22 @@ impl GameState {
         GameState::from_options(seed, settings)
     }
 
+    pub fn start_game(&mut self) {
+        self.start_time = Some(Utc::now().timestamp());
+    }
+
+    pub fn clock_time(&self) -> i64 {
+        if let Some(start_time) = self.start_time {
+            max(self.settings.total_time_seconds - (Utc::now().timestamp() - start_time), 0)
+        } else {
+            self.settings.total_time_seconds
+        }
+    }
+
     fn from_options(seed: u64, settings: GameSettings) -> GameState {
         let mut game_state = GameState {
             score: 0,
-            time: settings.total_time_seconds,
+            start_time: None,
             current_problem: Problem {..Default::default()},
             rng: ChaCha8Rng::seed_from_u64(seed),
             settings,
