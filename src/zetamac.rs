@@ -1,8 +1,8 @@
-use std::cmp::max;
-use std::fmt;
 use chrono::Utc;
 use rand::{prelude::*, random};
 use rand_chacha::ChaCha8Rng;
+use std::cmp::max;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct GameState {
@@ -45,19 +45,27 @@ impl Default for GameSettings {
             multiplication_range: (2..=12, 2..=100),
             total_time_seconds: 120,
         }
-   }
+    }
 }
 
 impl fmt::Display for Problem {
-   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {} {}", self.first, self.operation.char(), self.second)
-   }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{} {} {}",
+            self.first,
+            self.operation.char(),
+            self.second
+        )
+    }
 }
 
 impl GameState {
     pub fn new() -> GameState {
         let seed: u64 = random();
-        let settings = GameSettings { ..Default::default() };
+        let settings = GameSettings {
+            ..Default::default()
+        };
 
         GameState::from_options(seed, settings)
     }
@@ -68,7 +76,10 @@ impl GameState {
 
     pub fn clock_time(&self) -> i64 {
         if let Some(start_time) = self.start_time {
-            max(self.settings.total_time_seconds - (Utc::now().timestamp() - start_time), 0)
+            max(
+                self.settings.total_time_seconds - (Utc::now().timestamp() - start_time),
+                0,
+            )
         } else {
             self.settings.total_time_seconds
         }
@@ -78,7 +89,9 @@ impl GameState {
         let mut game_state = GameState {
             score: 0,
             start_time: None,
-            current_problem: Problem {..Default::default()},
+            current_problem: Problem {
+                ..Default::default()
+            },
             rng: ChaCha8Rng::seed_from_u64(seed),
             settings,
             seed,
@@ -92,34 +105,66 @@ impl GameState {
     }
 
     pub fn next_problem(&mut self) {
-        let options = [Operation::Add, Operation::Subtract, Operation::Multiply, Operation::Divide];
-        let operation = options.choose(&mut self.rng).copied().unwrap_or(Operation::Add);
+        let options = [
+            Operation::Add,
+            Operation::Subtract,
+            Operation::Multiply,
+            Operation::Divide,
+        ];
+        let operation = options
+            .choose(&mut self.rng)
+            .copied()
+            .unwrap_or(Operation::Add);
 
         self.current_problem = match operation {
             Operation::Add | Operation::Subtract => {
                 let numbers = (
-                    self.rng.random_range(self.settings.addition_range.0.clone()),
-                    self.rng.random_range(self.settings.addition_range.1.clone())
+                    self.rng
+                        .random_range(self.settings.addition_range.0.clone()),
+                    self.rng
+                        .random_range(self.settings.addition_range.1.clone()),
                 );
                 let sum = numbers.0 + numbers.1;
 
                 if operation == Operation::Add {
-                    Problem { first: numbers.0, second: numbers.1, answer: sum, operation }
+                    Problem {
+                        first: numbers.0,
+                        second: numbers.1,
+                        answer: sum,
+                        operation,
+                    }
                 } else {
-                    Problem { first: sum, second: numbers.0, answer: numbers.1, operation }
+                    Problem {
+                        first: sum,
+                        second: numbers.0,
+                        answer: numbers.1,
+                        operation,
+                    }
                 }
-            },
+            }
             Operation::Multiply | Operation::Divide => {
                 let numbers = (
-                    self.rng.random_range(self.settings.multiplication_range.0.clone()),
-                    self.rng.random_range(self.settings.multiplication_range.1.clone())
+                    self.rng
+                        .random_range(self.settings.multiplication_range.0.clone()),
+                    self.rng
+                        .random_range(self.settings.multiplication_range.1.clone()),
                 );
                 let product = numbers.0 * numbers.1;
 
                 if operation == Operation::Multiply {
-                    Problem { first: numbers.0, second: numbers.1, answer: product, operation }
+                    Problem {
+                        first: numbers.0,
+                        second: numbers.1,
+                        answer: product,
+                        operation,
+                    }
                 } else {
-                    Problem { first: product, second: numbers.0, answer: numbers.1, operation }
+                    Problem {
+                        first: product,
+                        second: numbers.0,
+                        answer: numbers.1,
+                        operation,
+                    }
                 }
             }
         };
@@ -136,5 +181,3 @@ impl Operation {
         }
     }
 }
-
-

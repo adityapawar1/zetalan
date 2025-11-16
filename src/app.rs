@@ -2,7 +2,12 @@ use std::{io, time::Duration};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
-    DefaultTerminal, Frame, layout::{Constraint, Direction, Layout, Rect}, style::{Style, Stylize}, symbols::border, text::{Line, Span, Text}, widgets::{Block, Borders, Padding, Paragraph, Widget}
+    DefaultTerminal, Frame,
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Style, Stylize},
+    symbols::border,
+    text::{Line, Span, Text},
+    widgets::{Block, Borders, Padding, Paragraph, Widget},
 };
 use tui_big_text::{BigText, PixelSize};
 
@@ -30,7 +35,7 @@ impl Default for App {
             game_state: GameState::new(),
             user_input: String::new(),
             current_screen: Screen::Game,
-            exit: false
+            exit: false,
         }
     }
 }
@@ -59,40 +64,27 @@ impl App {
 
         let outer = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Length(5),
-                Constraint::Min(0),
-            ])
+            .constraints([Constraint::Length(5), Constraint::Min(0)])
             .split(area);
 
         let inner = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Percentage(75),
-                Constraint::Percentage(25),
-            ])
+            .constraints([Constraint::Percentage(75), Constraint::Percentage(25)])
             .split(outer[1]);
 
         let header_block = Block::default()
             .borders(Borders::ALL)
             .border_set(border::THICK)
             .padding(Padding::new(1, 1, 0, 0))
-            .title(
-                Line::from(" zetalan ".bold())
-                    .centered()
-            );
+            .title(Line::from(" zetalan ".bold()).centered());
 
-        let header_text = Paragraph::new(
-            vec![
-                Line::from(vec![
-                    Span::styled("Score: ", Style::new().bold()),
-                    Span::raw(self.game_state.score.to_string()),
-                    Span::raw("    "),
-                    Span::styled("Time: ", Style::new().bold()),
-                    Span::raw(format!("{}s", self.game_state.clock_time())),
-                ])
-            ]
-        );
+        let header_text = Paragraph::new(vec![Line::from(vec![
+            Span::styled("Score: ", Style::new().bold()),
+            Span::raw(self.game_state.score.to_string()),
+            Span::raw("    "),
+            Span::styled("Time: ", Style::new().bold()),
+            Span::raw(format!("{}s", self.game_state.clock_time())),
+        ])]);
 
         frame.render_widget(header_text.block(header_block), outer[0]);
 
@@ -121,13 +113,10 @@ impl App {
             .title(" Info ".bold())
             .padding(Padding::new(1, 1, 1, 1));
 
-        let sidebar_text = Paragraph::new(
-            "Press q to quit"
-        );
+        let sidebar_text = Paragraph::new("Press q to quit");
 
         frame.render_widget(sidebar_text.block(sidebar_block), inner[1]);
     }
-
 
     fn exit(&mut self) {
         self.exit = true;
@@ -149,11 +138,11 @@ impl App {
                     self.user_input.push(value);
                     self.check_answer();
                 }
-            },
+            }
             KeyCode::Backspace => {
                 self.user_input.pop();
                 self.check_answer();
-            },
+            }
             _ => {}
         }
     }
